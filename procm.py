@@ -1,7 +1,12 @@
 #!/usr/local/bin/python3
 
 import argparse
+import json
+import os
+import subprocess
 import toml
+
+from threading import Thread
 
 import app.core.main as router
 import app.cli.main as cli
@@ -16,33 +21,35 @@ def main(args):
 
         if args.core:
 
-            # parse the config
-            if args.config == "":
-                print("error, must specify config!")
-                return
-
-            try:
-                c = toml.load(args.config, _dict=dict)
-                print(c)
-            except:
-                print("could not parse config!")
-                return
-
-
             core = router.core(address)
-            
-            # start the server with the services array
             core.start_server()
+            
+            # parse the config
+            if args.config != "":
+                try:
+                    c = toml.load(args.config, _dict=dict)
+                    Thread(target=launch_remotes, args=[c['services']]).start()
+                except:
+                    print("could not parse config!")
 
             core.wait()
 
         elif args.remote:
+
             pm = procman.remote(address)
             pm.connect()
+
+            if os.environ['AUTO'] == "True":
+                print("will launch child service")
+                service_string = os.environ['SRVINFO']
+                service = json.loads(service_string)
+                pm.launch(service)
+
             pm.wait()
 
         else:
             print("error, must specify core or remote in override mode")
+
 
     elif args.managed:
 
@@ -59,6 +66,22 @@ def main(args):
 
     elif args.report:
         cli.report()
+
+def launch_remotes(services):
+    print("launching remotes")
+    print(services)
+
+    service_processes = []
+
+    for s in services:
+        cmd = ["./procm.py", "-o", "--remote"]
+
+        env = os.environ
+        env['AUTO'] = "True"
+        env['SRVINFO'] = json.dumps(s)
+
+        service_processes.append(subprocess.Popen(cmd, env=env))
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

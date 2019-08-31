@@ -1,6 +1,7 @@
 import concurrent.futures as futures
 import grpc
 import signal
+import subprocess
 import sys
 import threading
 import time
@@ -52,6 +53,12 @@ class remote(object):
     #       the caller of _connect, the thread is not set to deamon mode and will not
     #       exit with the main thread.
     continue_connecting = True
+
+    # Service details about/ how to launch child service
+    service_details = None
+
+    # child process; i.e. the point of a process manager
+    service = None
 
     def __init__(self, core_address):
         self.core_address = core_address
@@ -119,6 +126,24 @@ class remote(object):
         self.server.add_insecure_port(self.reg.address)
         self.server.start()
         print("server started")
+
+    '''
+        start the child service using the details passed in
+    '''
+    def launch(self, service_details):
+        self.service_details = service_details
+
+        path = service_details['path']
+        entry = service_details['entry_point']
+        interpreter = "/usr/bin/python"
+
+        cmd = [interpreter, path+entry]
+
+
+        self.service = subprocess.Popen(cmd)
+
+
+
 
     '''
         blocking until sigint

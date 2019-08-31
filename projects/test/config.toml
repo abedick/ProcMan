@@ -4,7 +4,7 @@ updated_at = "08/28/2019, 16:48:10"
 
 [[services]]
 name = "test1"
-path = "/Users/abrahamdick/Software/dummy"
+path = "/Users/abrahamdick/Software/dummy/"
 entry_point = "main.py"
 language = "python"
 interpreted = true

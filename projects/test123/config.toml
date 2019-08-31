@@ -1,0 +1,5 @@
+name = "test123"
+created_at = "08/28/2019, 17:11:15"
+updated_at = "08/28/2019, 17:11:15"
+core_address = "localhost:59500"
+services = []

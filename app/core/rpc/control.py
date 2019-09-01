@@ -3,6 +3,7 @@ import os
 import signal
 
 import src.util.enum as enum
+import src.util.color as color
 import src.intrigue.intrigue_pb2 as intrigue_pb2
 import src.intrigue.intrigue_pb2_grpc as intrigue_pb2_grpc
 
@@ -15,19 +16,19 @@ class Control(intrigue_pb2_grpc.ControlServicer):
         self.core = core
 
     def StartService(self, request, context):
-        print("StartService")
+        color.cyan("StartService")
 
     def KillService(self, request, context):
         os.kill(os.getpid(), signal.SIGINT)
-        print("KillService")
+        color.cyan("KillService")
 
     def RestartService(self, request, context):
-        print("RestartService")
+        color.cyan("RestartService")
 
     def Summary(self, request, context):
 
         if request.Request == "summary.all":
-            print("getting summary for all connected remotes")
+            color.cyan("getting summary for all connected remotes")
 
             rmts = self.core.router.lookup_all_remotes()
             rmts_info = []
@@ -63,17 +64,16 @@ class Control(intrigue_pb2_grpc.ControlServicer):
             return receipt
 
     def StopServer(self, request, context):
-        print("StopServer")
+        color.cyan("StopServer")
 
     def NewRegistration(self, request, context):
-        print("registerRemote; ", request)
+        # color.cyan("registerRemote; " + request)
 
         msg = request.Message
         env = request.Env
         addr = request.Address
 
         registration = self.core.register_remote(msg, addr, env)
-        print(registration)
         if registration == None:
             receipt = intrigue_pb2.Receipt()
             receipt.Message = "error"
@@ -90,8 +90,8 @@ class Control(intrigue_pb2_grpc.ControlServicer):
         return receipt
 
     def UpdateRegistration(self, request, context):
-        print("UpdateRegistration")
-        print(request)
+        color.cyan("UpdateRegistration")
+        color.cyan(request)
 
         resp = intrigue_pb2.Receipt()
 
@@ -99,9 +99,9 @@ class Control(intrigue_pb2_grpc.ControlServicer):
             status = self.core.shutdown_remote(request.Message)
             resp.Message = status
 
-            print("status of shutdown process = ", status)
+            color.cyan("status of shutdown process = " + status)
         
         return resp
 
     def Alive(self, request, context):
-        print("Alive")
+        color.cyan("Alive")

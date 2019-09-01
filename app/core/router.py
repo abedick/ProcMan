@@ -5,6 +5,7 @@ import uuid
 from datetime import datetime
 
 import src.util.enum as enum
+import src.util.color as color
 import src.intrigue.intrigue_pb2 as intrigue_pb2
 import src.intrigue.intrigue_pb2_grpc as intrigue_pb2_grpc
 
@@ -78,32 +79,33 @@ class router(object):
         if service == None:
             return "error.not_found"
         
-        service.update_state(RemoteStateEnum.KILLED)
+        service.update_state(enum.RemoteState.KILLED)
         return "success"
 
     '''
         iterates through all stored services and forwards them to _send_shutdown
     '''
-    def shutdown_all(self):
+    def shutdown_all(self, override):
         for service in self.remotes:
-            self._send_shutdown(self.remotes[service].id, self.remotes[service].address)
+            self._send_shutdown(self.remotes[service].id, self.remotes[service].address, override)
 
     '''
         sends a grpc message to the address with the shutdown notification procedure
     '''
-    def _send_shutdown(self, id, address):
-        print(address)
+    def _send_shutdown(self, id, address, override):
         channel = grpc.insecure_channel(address)
         stub = intrigue_pb2_grpc.RemoteStub(channel)
 
         request = intrigue_pb2.Action()
         request.Request = "notif.shutdown"
+        if override:
+            request.Message = "forceful"
         request.RemoteID = id
 
         try:
             stub.NotifyAction(request)
         except:
-            print("error sending update request")
+            color.cyan("error sending update request")
 
     '''
         returns the remote_server object with the associated id; else None

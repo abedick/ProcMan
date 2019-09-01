@@ -1,10 +1,12 @@
 import grpc
+import json
 import os
 import shlex, subprocess
 import sys
 import toml
 
 from datetime import datetime
+from threading import Thread
 
 import src.util.pprint as pprint
 import src.intrigue.intrigue_pb2_grpc as intrigue_pb2_grpc
@@ -64,8 +66,43 @@ def start_project(path_to_projects, project_name=''):
 
         if os.path.exists(path_to_projects + project_name):
             print("found project")
+
+            # Parse the config
+            # try:
+            # print(path_to_projects + project_name + "/config.toml")
+
+
+            c = toml.load(path_to_projects + project_name + "/config.toml", _dict=dict)
+            print(c)
+
+            env = os.environ
+            env['PROCM_OVERRIDE'] = "True"
+
+            subprocess.Popen(["./procm.py", "-o", "--core"], env=env)
+            Thread(target=launch_remotes, args=[c['services']]).start()
+
+                
+            # except:
+            #     print("could not parse config!")
+
         else:
             print("could not find a project with the specified name")
+
+
+def launch_remotes(services):
+    print("launching remotes")
+    print(services)
+
+    service_processes = []
+
+    for s in services:
+        cmd = ["./procm.py", "-o", "--remote"]
+
+        env = os.environ
+        env['AUTO'] = "True"
+        env['SRVINFO'] = json.dumps(s)
+
+        subprocess.Popen(cmd, env=env)
 
 '''
     create a new procm project using the cli
@@ -177,3 +214,22 @@ def report():
     pprint.report(response)
 
 
+def _dump_config(path, name):
+    print("todo")
+    pass
+
+def _parse_config(path, name):
+    try:
+        c = toml.load(path + name + "/config.toml", _dict=dict)
+        return c
+    except:
+        return None
+
+def edit_project(path, name):
+    config = _parse_config(path,name)
+
+    if config == None:
+        print("error parsing config")
+        return
+
+    

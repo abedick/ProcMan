@@ -1,5 +1,6 @@
 import concurrent.futures as futures
 import grpc
+import os
 import signal
 import subprocess
 import sys
@@ -7,7 +8,9 @@ import threading
 import time
 
 from datetime import datetime
+from threading import Thread
 
+import src.util.color as color
 import src.util.enum as enum
 import src.intrigue.intrigue_pb2_grpc as intrigue_pb2_grpc
 import src.intrigue.intrigue_pb2 as intrigue_pb2
@@ -43,9 +46,8 @@ class remote(object):
     # The status of the service attached to the remote
     status = enum.RemoteState.UNINITIALIZED
 
-    # The object that manages the child-process
-    # The data needed to start the service will come from the registration
-    manager = service.manager()
+    # The object that manages the child-process. See "launch" method of remote
+    manager = None
 
     # helps cleanup threads on shutdown if in connecting state
     # TODO: There is definitely a smoother way of handling this;
@@ -53,12 +55,6 @@ class remote(object):
     #       the caller of _connect, the thread is not set to deamon mode and will not
     #       exit with the main thread.
     continue_connecting = True
-
-    # Service details about/ how to launch child service
-    service_details = None
-
-    # child process; i.e. the point of a process manager
-    service = None
 
     def __init__(self, core_address):
         self.core_address = core_address
@@ -68,7 +64,7 @@ class remote(object):
         Begin the attempt to contact core
     '''
     def connect(self):
-        print("attempting to make initial connection to core")
+        color.magenta("attempting to make initial connection to core")
         connect_thread = threading.Thread(target=self._connect, daemon=True)
         connect_thread.start()
 
@@ -100,17 +96,16 @@ class remote(object):
             self.reg = registration(serviceInfo.ID, serviceInfo.Address, serviceInfo.Fingerprint)
             self.reg_mu.release()
 
-            print("connected to core; registration =", end=' ')
-            print(serviceInfo)
+            color.magenta(str(serviceInfo.ID) + " connected to core; address =" + str(serviceInfo.Address))
 
             try:
                 self._start_server()
             except:
-                print("error starting server...telling core")
+                color.magenta("error starting server...telling core")
                 self._shutdown()
 
         except:
-            print("could not contact core; trying again in 5 seconds")
+            color.magenta("could not contact core; trying again in 5 seconds")
             time.sleep(5)
             self._connect()
         
@@ -119,37 +114,25 @@ class remote(object):
         start the remote server with the address acquired from the registration
     '''
     def _start_server(self):
-        print("starting remote server @ " + self.reg.address)
+        color.magenta("starting remote server @ " + self.reg.address)
         
         self.server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
         intrigue_pb2_grpc.add_RemoteServicer_to_server(remote_server.Remote(self), self.server)
         self.server.add_insecure_port(self.reg.address)
         self.server.start()
-        print("server started")
 
     '''
         start the child service using the details passed in
     '''
     def launch(self, service_details):
-        self.service_details = service_details
-
-        path = service_details['path']
-        entry = service_details['entry_point']
-        interpreter = "/usr/bin/python"
-
-        cmd = [interpreter, path+entry]
-
-
-        self.service = subprocess.Popen(cmd)
-
-
-
+        self.manager = service.manager(service_details)
+        Thread(target=self.manager.run, daemon=True).start()
 
     '''
         blocking until sigint
     '''
     def wait(self):
-        print("waiting for signal to end remote")
+        color.magenta("waiting for signal to end remote")
         signal.sigwait([signal.SIGINT])
         self._shutdown()        
 
@@ -157,7 +140,7 @@ class remote(object):
         sends a shutdown notice to core
     '''
     def _shutdown(self):
-        print("shutdown")
+        color.magenta("shutdown")
 
         channel = grpc.insecure_channel(self.core_address)
         stub = intrigue_pb2_grpc.ControlStub(channel)
@@ -170,17 +153,17 @@ class remote(object):
             request.Message = self.reg.id
 
             response = stub.UpdateRegistration(request)
-            print(response)
+            color.magenta(response)
         except:
-            print("could not notify core of shutdown...")
+            color.magenta("could not notify core of shutdown...")
 
         self.continue_connecting = False
     
     '''
         disconnection, wipe the registration and go back to connecting
     '''
-    def core_shutdown(self):
-        print("recieved core shutdown in remote object")
+    def core_shutdown(self, override):
+        color.magenta("recieved core shutdown in remote object")
 
         self.reg_mu.acquire()
         self.reg = None
@@ -188,15 +171,18 @@ class remote(object):
 
         # shutdown the current remote server if still running
         try:
-            # True for graceful shutdown
-            self.server.stop(True)
+            self.server.stop(True) # True for graceful shutdown
         except:
             pass
 
-        # return to the connecting state, attempting to get a registration
-        self._connect()
+        # if override, shutdown own process; else go back to connecting
+        if override:
+            self.manager.stop()
+            os._exit(0)
+        else:
+            self._connect()
 
     '''
     '''
     def _register(self):
-        print("registering a new service")
+        color.magenta("registering a new service")

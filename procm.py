@@ -15,6 +15,13 @@ import app.procman.main as procman
 address = "localhost:59500"
 path_to_projects = "./projects/"
 
+'''
+    tentative colors for debug
+        core = cyan
+        remotes = magenta
+        cli = white
+'''
+
 def main(args):
 
     if args.override:
@@ -38,8 +45,14 @@ def main(args):
 
             pm = procman.remote(address)
             pm.connect()
+            
+            auto = None
+            try:
+                auto = os.environ['AUTO']
+            except:
+                pass
 
-            if os.environ['AUTO'] == "True":
+            if auto == "True":
                 print("will launch child service")
                 service_string = os.environ['SRVINFO']
                 service = json.loads(service_string)
@@ -50,17 +63,18 @@ def main(args):
         else:
             print("error, must specify core or remote in override mode")
 
-
     elif args.managed:
 
         print("starting core")
 
     elif args.start:
-        cli.start_project(path_to_projects)
+        cli.start_project(path_to_projects, args.name)
     elif args.new:
         start = cli.create_project(path_to_projects)
         if start != None:
             cli.start_project(path_to_projects, start)
+    elif args.edit:
+        cli.edit_project(path_to_projects, args.name)
     elif args.stop:
         cli.stop_project()
 
@@ -108,6 +122,8 @@ if __name__ == '__main__':
     parser.add_argument("-m", dest='managed', action='store_true')
     parser.add_argument("--run", dest='run', action='store_true')
     parser.add_argument("--name", dest='name')
+
+    parser.add_argument("--edit", dest='edit')
 
     parser.add_argument("--report", dest='report', action='store_true')
 

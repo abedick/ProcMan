@@ -14,7 +14,12 @@ class Remote(intrigue_pb2_grpc.RemoteServicer):
         print(request)
         if request.Request == "notif.shutdown":
             print("recieved shutdown notification from core")
-            self.remote.core_shutdown()
+
+            override = False
+            if request.Message == "forceful":
+                override = True
+
+            self.remote.core_shutdown(override)
             return intrigue_pb2.Receipt()
 
     def Summary(self, request, context):
@@ -32,13 +37,14 @@ class Remote(intrigue_pb2_grpc.RemoteServicer):
 
         # dummy service
         service = intrigue_pb2.Service()
-        service.Name = "s.name"
-        service.Language = "s.lang"
+        service.Name = self.remote.manager.name
+        service.Language = self.remote.manager.language
         service.Fails = 0
         service.Restarts = 0
+        # service.Pid = self.remote.manager.process.Pid()
         service.Pid = 111
         service.Status = "s.status"
-        service.Path = "./path"
+        service.Path = self.remote.manager.path
         
         manager.Services.extend([service])
 

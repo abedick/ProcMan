@@ -63,23 +63,15 @@ def main(args):
         else:
             print("error, must specify core or remote in override mode")
 
-    elif args.managed:
 
-        print("starting core")
-
-    elif args.start:
-        cli.start_project(path_to_projects, args.name)
-    elif args.new:
-        start = cli.create_project(path_to_projects)
-        if start != None:
-            cli.start_project(path_to_projects, start)
-    elif args.edit:
-        cli.edit_project(path_to_projects, args.name)
     elif args.stop:
         cli.stop_project()
 
     elif args.report:
         cli.report()
+
+    else:
+        cli.start(path_to_projects, None)
 
 def launch_remotes(services):
     print("launching remotes")
@@ -108,12 +100,6 @@ if __name__ == '__main__':
     parser.add_argument("--core", dest='core', action='store_true')
     parser.add_argument("--remote", dest='remote', action='store_true')
     parser.add_argument("--config", dest='config')
-
-    ''' 
-        normal operation flags
-    '''
-    parser.add_argument("--start", dest='start', action='store_true')
-    parser.add_argument("--new", dest='new', action='store_true')
     parser.add_argument("--stop", dest='stop', action='store_true')
 
     '''

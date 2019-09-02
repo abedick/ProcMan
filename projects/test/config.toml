@@ -1,7 +1,6 @@
 name = "test"
 created_at = "08/28/2019, 16:48:10"
 updated_at = "08/28/2019, 16:48:10"
-
 [[services]]
 name = "test1"
 path = "/Users/abrahamdick/Software/dummy/"

@@ -1,7 +1,9 @@
 import grpc
+import inquirer
 import json
 import os
 import shlex, subprocess
+import shutil
 import sys
 import toml
 
@@ -12,108 +14,51 @@ import src.util.pprint as pprint
 import src.intrigue.intrigue_pb2_grpc as intrigue_pb2_grpc
 import src.intrigue.intrigue_pb2 as intrigue_pb2
 
+
+
 '''
-    starts a project using the path (specified by config) + the project name 
-    (specified by user) if it can be found.
-
-    if project_name == '' then list all projects found in path_to_projects
-    if no projects in path_to_projects, ask the user if they would liek to create 
-        one
+    refactor below
 '''
-def start_project(path_to_projects, project_name=''):
 
-    print("looking for projects in dir: " + path_to_projects)
-    
-    if project_name == '':
+def start(path_to_projects, project_name):
 
-        names = _get_project_names(path_to_projects)
-        if len(names) == 0:
-            print("no projects found; would you like to create one?[Y/n]: ", end=' ')
+    print("  _                                                      ")
+    print(" |_) ._ _   _ \\   _   _  _ |\/|  _. ._ \\   _.  _   _  ._ ")
+    print(" |   | (_) (_  \\ (/_ _> _> |  | (_| | | \\ (_| (_| (/_ |  ")
+    print("                                               _|        ")
+    print(pprint.seperator)
 
-            should_continue = input()
-            if should_continue == 'y' or should_continue == 'Y':
-                create_project(path_to_projects)
+    choices = _get_project_names(path_to_projects)
+    choices.append("Create a new Project")
+    choices.append("Exit")
 
-        else:
-            print("found projects")
-            print(pprint.seperator)
+    choices = [
+        inquirer.List('choice',
+                      message="Load a project",
+                      choices = choices,
+                      ),
+    ]
 
-            for i in range(len(names)):
-                print(str(i+1) + ". " + names[i])
+    project_choice = inquirer.prompt(choices)
 
-            print(pprint.seperator)
-            print("Choose a project (number or name): ", end=' ')
-
-            selection = input()
-
-            name = ''
-            try:
-                selection = int(selection)
-                name = names[selection-1]
-            except:
-                try:
-                    index = names.index(selection)
-                    name = names[index]
-                except:
-                    print("...could not load project")
-                    return
-            
-            _launch_project(path_to_projects, name)
-            # print(name)
-            # if not isInt:
-
+    if project_choice['choice'] == "Create a new Project":
+        _create_new(path_to_projects)
+    elif project_choice['choice'] == "Exit":
+        return
     else:
+        _load_project(path_to_projects, project_choice['choice'])
 
-        if os.path.exists(path_to_projects + project_name):
-            print("found project")
-
-            # Parse the config
-            # try:
-            # print(path_to_projects + project_name + "/config.toml")
-
-
-            c = toml.load(path_to_projects + project_name + "/config.toml", _dict=dict)
-            print(c)
-
-            env = os.environ
-            env['PROCM_OVERRIDE'] = "True"
-
-            subprocess.Popen(["./procm.py", "-o", "--core"], env=env)
-            Thread(target=launch_remotes, args=[c['services']]).start()
-
-                
-            # except:
-            #     print("could not parse config!")
-
-        else:
-            print("could not find a project with the specified name")
-
-
-def launch_remotes(services):
-    print("launching remotes")
-    print(services)
-
-    service_processes = []
-
-    for s in services:
-        cmd = ["./procm.py", "-o", "--remote"]
-
-        env = os.environ
-        env['AUTO'] = "True"
-        env['SRVINFO'] = json.dumps(s)
-
-        subprocess.Popen(cmd, env=env)
-
-'''
-    create a new procm project using the cli
-'''
-def create_project(path_to_projects):
+def _create_new(path_to_projects):
     print(pprint.seperator)
-    print("creating new procm project")
+    print("creating a new project")
     print(pprint.seperator)
 
-    print("name:", end=' ')
-    name = input()
+    questions = [
+        inquirer.Text('name', message="give the project a name")
+    ]
+
+    new_project = inquirer.prompt(questions)
+    name = new_project['name']
 
     dir_name = _create_project_dir(path_to_projects,name.replace(' ','_'), 0)
     if dir_name != name:
@@ -128,15 +73,148 @@ def create_project(path_to_projects):
 
     _create_project_config_file(path_to_projects, project)
 
-    print("created at: " + project['created_at'])
-    print("core address (default): " + project['core_address'])
-    print("...created")
+    while True:
+        print(pprint.seperator)
+
+        yesno = [
+            inquirer.List('continue',
+                        message="Add services now",
+                        choices = ['yes', 'no'],
+                        ),
+        ]
+
+        yesno = inquirer.prompt(yesno)
+
+        if yesno['continue'] == "no":
+            break
+
+        service = _create_new_service()
+        project['services'].append(service)
+
+    _create_project_config_file(path_to_projects, project)
+
+    _load_project(path_to_projects, project['name'])
+
+
+def _load_project(path_to_projects, name):
     print(pprint.seperator)
-    print("...would you like to start the project now?[Y/n]", end=' ')
-    start = input()
+    print("project: " + name)
+    print(pprint.seperator)
 
-    return project['name'] if start == 'y' or start == 'Y' else None
+    choices = [
+        inquirer.List('choice',
+                      message="Choose an option",
+                      choices = ["start project", "edit config", "delete project", "go back"],
+                      ),
+    ]
 
+    result = inquirer.prompt(choices)
+
+    if result['choice'] == "start project":
+        c = toml.load(path_to_projects + name + "/config.toml", _dict=dict)
+        
+        env = os.environ
+        env['PROCM_OVERRIDE'] = "True"
+        
+        subprocess.Popen(["./procm.py", "-o", "--core"], env=env)
+
+        services = c['services']
+        for s in services:
+            cmd = ["./procm.py", "-o", "--remote"]
+
+            env = os.environ
+            env['AUTO'] = "True"
+            env['SRVINFO'] = json.dumps(s)
+
+            subprocess.Popen(cmd, env=env)
+
+        return
+    elif result['choice'] == "go back":
+        print(pprint.seperator)
+        start(path_to_projects, None)
+    elif result['choice'] == "edit config":
+        _edit_project(path_to_projects, name)
+    elif result['choice'] == "delete project":
+        print("TODO")
+
+    print(pprint.seperator)
+
+    try:
+        shutil.rmtree(path_to_projects + name)
+        print("sucessfully deleted project")
+    except:
+        print("could not delete project")    
+
+    print(pprint.seperator)
+    start(path_to_projects, None)
+
+def _edit_project(path_to_projects, name):
+    print(pprint.seperator)
+    print("project: " + name)
+    print(pprint.seperator)
+
+
+    choices = [
+        inquirer.List('choice',
+                      message="Choose an option",
+                      choices = ["view config", "add service", "modify service", "remove services", "go back"],
+                      ),
+    ]
+
+    result = inquirer.prompt(choices)
+
+    if result['choice'] == "go back":
+        print(pprint.seperator)
+        _load_project(path_to_projects, name)
+    else:
+        c = None
+        try:
+            c = _parse_config(path_to_projects, name)
+        except:
+            print(pprint.seperator)
+            print("could not load project config!")
+            return
+
+        if result['choice'] == "add service":
+
+            c['services'].append(_create_new_service())
+            print(pprint.seperator)
+            print("...added")
+
+        elif result['choice'] == "remove service":
+            print("TODO")
+            return
+
+        _dump_config(path_to_projects, c)
+        _edit_project(path_to_projects, name)
+
+def _create_new_service():
+    questions = [
+        inquirer.Text('name', message="name"),
+        inquirer.Text('path', message="path"),
+        inquirer.Text('entry_point', message="entry point"),
+        inquirer.Text('language', message="language"),
+        inquirer.Text('interpreter', message="interpreter"),
+        inquirer.Text('watch', message="rebuild on save"),
+        inquirer.Text('env', message="environment variables"),
+        inquirer.Text('flags', message="flags"),
+    ]
+
+    print(pprint.seperator)
+    new_service = inquirer.prompt(questions)
+
+    service = {
+        "name": new_service["name"],
+        "path": new_service["path"],
+        "entry_point": new_service["entry_point"],
+        "language": new_service["language"],
+        "interpreter": new_service["interpreter"],
+        "watch": new_service["watch"],
+        "env": new_service["env"],
+        "flags": new_service["flags"],
+    }
+
+    return service
 
 def stop_project():
     print("stopping project")
@@ -151,9 +229,7 @@ def stop_project():
     returns the list of all directory names in path_to_projects
 '''
 def _get_project_names(path_to_projects):
-    print(path_to_projects)
     names = os.listdir(path_to_projects)
-    print(names)
     return names
 
 '''
@@ -214,9 +290,10 @@ def report():
     pprint.report(response)
 
 
-def _dump_config(path, name):
-    print("todo")
-    pass
+def _dump_config(path, config):
+    f = open(path + config['name'] + "/config.toml", "w+")
+    f.write(toml.dumps(config))
+    f.close()
 
 def _parse_config(path, name):
     try:
@@ -231,5 +308,3 @@ def edit_project(path, name):
     if config == None:
         print("error parsing config")
         return
-
-    

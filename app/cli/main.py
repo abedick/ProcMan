@@ -15,7 +15,6 @@ import src.intrigue.intrigue_pb2_grpc as intrigue_pb2_grpc
 import src.intrigue.intrigue_pb2 as intrigue_pb2
 
 
-
 '''
     refactor below
 '''

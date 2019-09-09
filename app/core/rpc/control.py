@@ -16,19 +16,19 @@ class Control(intrigue_pb2_grpc.ControlServicer):
         self.core = core
 
     def StartService(self, request, context):
-        color.cyan("StartService")
+        self.core._print("StartService")
 
     def KillService(self, request, context):
         os.kill(os.getpid(), signal.SIGINT)
-        color.cyan("KillService")
+        self.core._print("KillService")
 
     def RestartService(self, request, context):
-        color.cyan("RestartService")
+        self.core._print("RestartService")
 
     def Summary(self, request, context):
 
         if request.Request == "summary.all":
-            color.cyan("getting summary for all connected remotes")
+            self.core._print("getting summary for all connected remotes")
 
             rmts = self.core.router.lookup_all_remotes()
             rmts_info = []
@@ -64,11 +64,11 @@ class Control(intrigue_pb2_grpc.ControlServicer):
             return receipt
 
     def StopServer(self, request, context):
-        color.cyan("StopServer")
+        self.core._print("StopServer")
 
     def NewRegistration(self, request, context):
-        # color.cyan("registerRemote; " + request)
-
+        self.core._print("registerRemote; " + str(request))
+        
         msg = request.Message
         env = request.Env
         addr = request.Address
@@ -90,8 +90,8 @@ class Control(intrigue_pb2_grpc.ControlServicer):
         return receipt
 
     def UpdateRegistration(self, request, context):
-        color.cyan("UpdateRegistration")
-        color.cyan(request)
+        self.core._print("UpdateRegistration")
+        self.core._print(str(request))
 
         resp = intrigue_pb2.Receipt()
 
@@ -99,9 +99,10 @@ class Control(intrigue_pb2_grpc.ControlServicer):
             status = self.core.shutdown_remote(request.Message)
             resp.Message = status
 
-            color.cyan("status of shutdown process = " + status)
+            self.core._print("status of shutdown process = " + status)
         
         return resp
 
     def Alive(self, request, context):
-        color.cyan("Alive")
+        self.core._print("Alive")
+        return intrigue_pb2.Pong()

@@ -30,7 +30,9 @@ class manager(object):
     number_failes = 0
     lsat_fail_time = None
 
-    def __init__(self, raw_details):
+    log_fd = None
+
+    def __init__(self, raw_details, log_fd):
         self.name = raw_details['name']
         self.path = raw_details['path']
         self.entry_point = raw_details['entry_point']
@@ -41,6 +43,8 @@ class manager(object):
         self.cmd = self._get_cmd()
 
         self.state = enum.ProcessState.UNINITIALIZED
+
+        self.log_fd = log_fd
     
     '''
         fork and exec the process
@@ -61,7 +65,8 @@ class manager(object):
 
         except:
 
-            color.magenta("could not start service")
+
+            self._print("could not start service")
 
         self.listener()
 
@@ -69,15 +74,15 @@ class manager(object):
         listen to the process
     '''
     def listener(self):
-        color.magenta("listening to child process")
+        self._print("listening to child process")
         self.process.wait()
-        color.magenta("child process terminated")
+        self._print("child process terminated")
 
-        color.magenta(str(self.state))
+        self._print(str(self.state))
 
         # if process isn't restarting or shutting down (i.e. failed)
         if (self.state !=  enum.ProcessState.RESTARTING) and (self.state != enum.ProcessState.SHUTDOWN):
-            color.magenta("restarting process from failure")
+            self._print("restarting process from failure")
 
             self.mu.acquire()
             self.number_failes += 1
@@ -108,3 +113,11 @@ class manager(object):
             else:
                 cmd += self.entry_point
         return cmd
+
+
+    def _print(self, msg):
+        if self.log_fd == None:
+            print(msg)
+        else:
+            self.log_fd.write(msg + "\n")
+            self.log_fd.flush()

@@ -24,15 +24,24 @@ class core(object):
 
     # read from an env var, if true, when sending shutdown message, remotes must
     # terminate their children and then themselves
-    override = None
+    override = False
+
+    log_fd = None
 
     '''
         initialize the core w/ the address passed in 
     '''
     def __init__(self, address):
-        color.cyan(" ._                         ")
-        color.cyan(" |_) ._ _   _ |\\/|  _. ._  ")
-        color.cyan(" |   | (_) (_ |  | (_| | |  ")
+
+        try:
+            log_path = os.environ['LOGPATH']
+            self.log_fd = open(log_path, "a+")
+        except:
+            print("could not create log for core")
+
+        self._print(" ._                         ")
+        self._print(" |_) ._ _   _ |\\/|  _. ._  ")
+        self._print(" |   | (_) (_ |  | (_| | |  ")
 
         self.address = address
 
@@ -43,23 +52,22 @@ class core(object):
         except:
             pass
 
-
     '''
         start the grpc server using the address passed into the constructor
     '''
     def start_server(self):
-        color.cyan("starting service @ " + self.address)
+        self._print("starting service @ " + self.address)
         self.server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
         intrigue_pb2_grpc.add_ControlServicer_to_server(control.Control(self), self.server)
         self.server.add_insecure_port(self.address)
         self.server.start()
-        color.cyan("core started")
+        self._print("core started")
 
     '''
         register the remote server (called from the control object)
     '''
     def register_remote(self, mode, addr, env):
-        color.cyan("registering new remote")
+        self._print("registering new remote")
         return self.router.add_service(mode, addr, env)
 
     '''
@@ -72,7 +80,7 @@ class core(object):
         block the main thread until shutdown; then run the shutdown procedures
     '''
     def wait(self):
-        color.cyan("waiting for signal to end server")
+        self._print("waiting for signal to end server")
         signal.sigwait([signal.SIGINT])
 
         self._shutdown()
@@ -81,10 +89,25 @@ class core(object):
         send the shutdown notice to the router
     '''
     def _shutdown(self):
-        color.cyan("sending shutdown notif to all attached services")
+        self._print("sending shutdown notif to all attached services")
 
         # Shutdown the server, handling no new requests and cancelling all in flight
         self.server.stop(None)
 
         # Send shutdown to remote grpc servers
         self.router.shutdown_all(self.override)
+
+        try:
+            self.log_fd.close()
+        except:
+            pass
+
+    def _print(self, msg):
+        if self.log_fd == None:
+            print(msg)
+        else:
+            try:
+                self.log_fd.write(msg + "\n")
+                self.log_fd.flush()
+            except:
+                print("fucking hell")

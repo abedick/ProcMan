@@ -56,15 +56,24 @@ class remote(object):
     #       exit with the main thread.
     continue_connecting = True
 
+    log_fd = None
+
     def __init__(self, core_address):
         self.core_address = core_address
         self.start_time = datetime.now().strftime("%s")
+
+        try:
+            log_path = os.environ['LOGPATH']
+            self.log_fd = open(log_path, "a+")
+        except:
+            pass
+
 
     '''
         Begin the attempt to contact core
     '''
     def connect(self):
-        color.magenta("attempting to make initial connection to core")
+        self._print("attempting to make initial connection to core")
         connect_thread = threading.Thread(target=self._connect, daemon=True)
         connect_thread.start()
 
@@ -96,16 +105,16 @@ class remote(object):
             self.reg = registration(serviceInfo.ID, serviceInfo.Address, serviceInfo.Fingerprint)
             self.reg_mu.release()
 
-            color.magenta(str(serviceInfo.ID) + " connected to core; address =" + str(serviceInfo.Address))
+            self._print(str(serviceInfo.ID) + " connected to core; address =" + str(serviceInfo.Address))
 
             try:
                 self._start_server()
             except:
-                color.magenta("error starting server...telling core")
+                self._print("error starting server...telling core")
                 self._shutdown()
 
         except:
-            color.magenta("could not contact core; trying again in 5 seconds")
+            self._print("could not contact core; trying again in 5 seconds")
             time.sleep(5)
             self._connect()
         
@@ -114,7 +123,7 @@ class remote(object):
         start the remote server with the address acquired from the registration
     '''
     def _start_server(self):
-        color.magenta("starting remote server @ " + self.reg.address)
+        self._print("starting remote server @ " + self.reg.address)
         
         self.server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
         intrigue_pb2_grpc.add_RemoteServicer_to_server(remote_server.Remote(self), self.server)
@@ -125,14 +134,14 @@ class remote(object):
         start the child service using the details passed in
     '''
     def launch(self, service_details):
-        self.manager = service.manager(service_details)
+        self.manager = service.manager(service_details, self.log_fd)
         Thread(target=self.manager.run, daemon=True).start()
 
     '''
         blocking until sigint
     '''
     def wait(self):
-        color.magenta("waiting for signal to end remote")
+        self._print("waiting for signal to end remote")
         signal.sigwait([signal.SIGINT])
         self._shutdown()        
 
@@ -140,7 +149,7 @@ class remote(object):
         sends a shutdown notice to core
     '''
     def _shutdown(self):
-        color.magenta("shutdown")
+        self._print("shutdown")
 
         channel = grpc.insecure_channel(self.core_address)
         stub = intrigue_pb2_grpc.ControlStub(channel)
@@ -153,17 +162,22 @@ class remote(object):
             request.Message = self.reg.id
 
             response = stub.UpdateRegistration(request)
-            color.magenta(response)
+            self._print(str(response))
         except:
-            color.magenta("could not notify core of shutdown...")
+            self._print("could not notify core of shutdown...")
 
         self.continue_connecting = False
+
+        try:
+            self.log_fd.close()
+        except:
+            pass
     
     '''
         disconnection, wipe the registration and go back to connecting
     '''
     def core_shutdown(self, override):
-        color.magenta("recieved core shutdown in remote object")
+        self._print("recieved core shutdown in remote object")
 
         self.reg_mu.acquire()
         self.reg = None
@@ -185,4 +199,11 @@ class remote(object):
     '''
     '''
     def _register(self):
-        color.magenta("registering a new service")
+        self._print("registering a new service")
+
+    def _print(self, msg):
+        if self.log_fd == None:
+            print(msg)
+        else:
+            self.log_fd.write(msg + "\n")
+            self.log_fd.flush()

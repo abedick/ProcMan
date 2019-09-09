@@ -1,0 +1,413 @@
+attempting to make initial connection to core
+waiting for signal to end remote
+listening to child process
+could not contact core; trying again in 5 seconds
+r1 connected to core; address =localhost:59502
+starting remote server @ localhost:59502
+remote.summary.request
+NotifyAction
+recieved core shutdown in remote object
+attempting to make initial connection to core
+waiting for signal to end remote
+listening to child process
+could not contact core; trying again in 5 seconds
+r1 connected to core; address =localhost:59502
+starting remote server @ localhost:59502
+remote.summary.request
+NotifyAction
+recieved core shutdown in remote object
+attempting to make initial connection to core
+waiting for signal to end remote
+listening to child process
+could not contact core; trying again in 5 seconds
+r1 connected to core; address =localhost:59502
+starting remote server @ localhost:59502
+NotifyAction
+recieved core shutdown in remote object
+attempting to make initial connection to core
+waiting for signal to end remote
+listening to child process
+r1 connected to core; address =localhost:59502
+starting remote server @ localhost:59502
+NotifyAction
+recieved core shutdown in remote object
+attempting to make initial connection to core
+waiting for signal to end remote
+listening to child process
+could not contact core; trying again in 5 seconds
+r1 connected to core; address =localhost:59502
+starting remote server @ localhost:59502
+NotifyAction
+recieved core shutdown in remote object
+attempting to make initial connection to core
+waiting for signal to end remote
+listening to child process
+r1 connected to core; address =localhost:59502
+starting remote server @ localhost:59502
+remote.summary.request
+remote.summary.request
+remote.summary.request
+remote.summary.request
+remote.summary.request
+remote.summary.request
+remote.summary.request
+remote.summary.request
+remote.summary.request
+remote.summary.request
+remote.summary.request
+remote.summary.request
+remote.summary.request
+remote.summary.request
+remote.summary.request
+remote.summary.request
+remote.summary.request
+remote.summary.request
+remote.summary.request
+remote.summary.request
+remote.summary.request
+NotifyAction
+recieved core shutdown in remote object
+attempting to make initial connection to core
+attempting to make initial connection to core
+listening to child process
+listening to child process
+waiting for signal to end remote
+r1 connected to core; address =localhost:59502
+starting remote server @ localhost:59502
+waiting for signal to end remote
+r2 connected to core; address =localhost:59504
+starting remote server @ localhost:59504
+remote.summary.request
+remote.summary.request
+remote.summary.request
+remote.summary.request
+NotifyAction
+recieved core shutdown in remote object
+NotifyAction
+recieved core shutdown in remote object
+attempting to make initial connection to core
+attempting to make initial connection to core
+waiting for signal to end remote
+could not contact core; trying again in 5 seconds
+listening to child process
+waiting for signal to end remote
+listening to child process
+could not contact core; trying again in 5 seconds
+r1 connected to core; address =localhost:59502
+starting remote server @ localhost:59502
+r2 connected to core; address =localhost:59504
+starting remote server @ localhost:59504
+remote.summary.request
+remote.summary.request
+remote.summary.request
+remote.summary.request
+remote.summary.request
+remote.summary.request
+remote.summary.request
+remote.summary.request
+NotifyAction
+recieved core shutdown in remote object
+NotifyAction
+recieved core shutdown in remote object
+attempting to make initial connection to core
+attempting to make initial connection to core
+waiting for signal to end remote
+listening to child process
+could not contact core; trying again in 5 seconds
+listening to child process
+could not contact core; trying again in 5 seconds
+waiting for signal to end remote
+r1 connected to core; address =localhost:59502
+starting remote server @ localhost:59502
+r2 connected to core; address =localhost:59504
+starting remote server @ localhost:59504
+remote.summary.request
+remote.summary.request
+NotifyAction
+recieved core shutdown in remote object
+NotifyAction
+recieved core shutdown in remote object
+attempting to make initial connection to core
+waiting for signal to end remote
+attempting to make initial connection to core
+listening to child process
+could not contact core; trying again in 5 seconds
+waiting for signal to end remote
+listening to child process
+r1 connected to core; address =localhost:59502
+starting remote server @ localhost:59502
+remote.summary.request
+r2 connected to core; address =localhost:59504
+starting remote server @ localhost:59504
+remote.summary.request
+remote.summary.request
+NotifyAction
+recieved core shutdown in remote object
+NotifyAction
+recieved core shutdown in remote object
+attempting to make initial connection to core
+waiting for signal to end remote
+could not contact core; trying again in 5 seconds
+listening to child process
+attempting to make initial connection to core
+waiting for signal to end remote
+listening to child process
+r1 connected to core; address =localhost:59502
+starting remote server @ localhost:59502
+remote.summary.request
+r2 connected to core; address =localhost:59504
+starting remote server @ localhost:59504
+remote.summary.request
+remote.summary.request
+remote.summary.request
+remote.summary.request
+remote.summary.request
+remote.summary.request
+remote.summary.request
+remote.summary.request
+remote.summary.request
+remote.summary.request
+remote.summary.request
+remote.summary.request
+remote.summary.request
+remote.summary.request
+remote.summary.request
+remote.summary.request
+remote.summary.request
+remote.summary.request
+remote.summary.request
+remote.summary.request
+remote.summary.request
+remote.summary.request
+remote.summary.request
+remote.summary.request
+remote.summary.request
+remote.summary.request
+remote.summary.request
+remote.summary.request
+remote.summary.request
+remote.summary.request
+remote.summary.request
+remote.summary.request
+remote.summary.request
+remote.summary.request
+remote.summary.request
+remote.summary.request
+remote.summary.request
+remote.summary.request
+remote.summary.request
+remote.summary.request
+NotifyAction
+recieved core shutdown in remote object
+NotifyAction
+recieved core shutdown in remote object
+attempting to make initial connection to core
+waiting for signal to end remote
+could not contact core; trying again in 5 seconds
+listening to child process
+attempting to make initial connection to core
+waiting for signal to end remote
+listening to child process
+r1 connected to core; address =localhost:59502
+starting remote server @ localhost:59502
+remote.summary.request
+r2 connected to core; address =localhost:59504
+starting remote server @ localhost:59504
+remote.summary.request
+remote.summary.request
+NotifyAction
+recieved core shutdown in remote object
+NotifyAction
+recieved core shutdown in remote object
+attempting to make initial connection to core
+attempting to make initial connection to core
+could not contact core; trying again in 5 seconds
+listening to child process
+waiting for signal to end remote
+waiting for signal to end remote
+could not contact core; trying again in 5 seconds
+listening to child process
+r1 connected to core; address =localhost:59502
+starting remote server @ localhost:59502
+r2 connected to core; address =localhost:59504
+starting remote server @ localhost:59504
+remote.summary.request
+remote.summary.request
+shutdown
+shutdown
+could not notify core of shutdown...
+could not notify core of shutdown...
+attempting to make initial connection to core
+waiting for signal to end remote
+listening to child process
+could not contact core; trying again in 5 seconds
+attempting to make initial connection to core
+waiting for signal to end remote
+listening to child process
+r1 connected to core; address =localhost:59502
+starting remote server @ localhost:59502
+remote.summary.request
+r2 connected to core; address =localhost:59504
+starting remote server @ localhost:59504
+remote.summary.request
+remote.summary.request
+NotifyAction
+recieved core shutdown in remote object
+NotifyAction
+recieved core shutdown in remote object
+attempting to make initial connection to core
+attempting to make initial connection to core
+waiting for signal to end remote
+waiting for signal to end remote
+listening to child process
+listening to child process
+r1 connected to core; address =localhost:59502
+starting remote server @ localhost:59502
+r2 connected to core; address =localhost:59504
+starting remote server @ localhost:59504
+NotifyAction
+recieved core shutdown in remote object
+NotifyAction
+recieved core shutdown in remote object
+attempting to make initial connection to core
+attempting to make initial connection to core
+waiting for signal to end remote
+could not contact core; trying again in 5 seconds
+listening to child process
+listening to child process
+could not contact core; trying again in 5 seconds
+waiting for signal to end remote
+r1 connected to core; address =localhost:59502
+starting remote server @ localhost:59502
+r2 connected to core; address =localhost:59504
+starting remote server @ localhost:59504
+remote.summary.request
+remote.summary.request
+remote.summary.request
+remote.summary.request
+remote.summary.request
+remote.summary.request
+remote.summary.request
+remote.summary.request
+remote.summary.request
+remote.summary.request
+remote.summary.request
+remote.summary.request
+remote.summary.request
+remote.summary.request
+remote.summary.request
+remote.summary.request
+remote.summary.request
+remote.summary.request
+NotifyAction
+recieved core shutdown in remote object
+NotifyAction
+recieved core shutdown in remote object
+attempting to make initial connection to core
+attempting to make initial connection to core
+waiting for signal to end remote
+waiting for signal to end remote
+listening to child process
+could not contact core; trying again in 5 seconds
+listening to child process
+could not contact core; trying again in 5 seconds
+could not contact core; trying again in 5 seconds
+could not contact core; trying again in 5 seconds
+could not contact core; trying again in 5 seconds
+could not contact core; trying again in 5 seconds
+could not contact core; trying again in 5 seconds
+could not contact core; trying again in 5 seconds
+could not contact core; trying again in 5 seconds
+could not contact core; trying again in 5 seconds
+could not contact core; trying again in 5 seconds
+could not contact core; trying again in 5 seconds
+could not contact core; trying again in 5 seconds
+could not contact core; trying again in 5 seconds
+could not contact core; trying again in 5 seconds
+could not contact core; trying again in 5 seconds
+could not contact core; trying again in 5 seconds
+could not contact core; trying again in 5 seconds
+could not contact core; trying again in 5 seconds
+could not contact core; trying again in 5 seconds
+could not contact core; trying again in 5 seconds
+could not contact core; trying again in 5 seconds
+could not contact core; trying again in 5 seconds
+could not contact core; trying again in 5 seconds
+could not contact core; trying again in 5 seconds
+could not contact core; trying again in 5 seconds
+could not contact core; trying again in 5 seconds
+could not contact core; trying again in 5 seconds
+could not contact core; trying again in 5 seconds
+could not contact core; trying again in 5 seconds
+could not contact core; trying again in 5 seconds
+could not contact core; trying again in 5 seconds
+could not contact core; trying again in 5 seconds
+could not contact core; trying again in 5 seconds
+could not contact core; trying again in 5 seconds
+could not contact core; trying again in 5 seconds
+could not contact core; trying again in 5 seconds
+could not contact core; trying again in 5 seconds
+could not contact core; trying again in 5 seconds
+could not contact core; trying again in 5 seconds
+could not contact core; trying again in 5 seconds
+could not contact core; trying again in 5 seconds
+attempting to make initial connection to core
+attempting to make initial connection to core
+listening to child process
+could not contact core; trying again in 5 seconds
+waiting for signal to end remote
+waiting for signal to end remote
+listening to child process
+r1 connected to core; address =localhost:59502
+starting remote server @ localhost:59502
+remote.summary.request
+remote.summary.request
+r2 connected to core; address =localhost:59504
+starting remote server @ localhost:59504
+remote.summary.request
+remote.summary.request
+NotifyAction
+recieved core shutdown in remote object
+NotifyAction
+recieved core shutdown in remote object
+attempting to make initial connection to core
+waiting for signal to end remote
+listening to child process
+r1 connected to core; address =localhost:59502
+starting remote server @ localhost:59502
+attempting to make initial connection to core
+waiting for signal to end remote
+listening to child process
+r2 connected to core; address =localhost:59504
+starting remote server @ localhost:59504
+NotifyAction
+recieved core shutdown in remote object
+NotifyAction
+recieved core shutdown in remote object
+attempting to make initial connection to core
+waiting for signal to end remote
+listening to child process
+attempting to make initial connection to core
+r1 connected to core; address =localhost:59502
+starting remote server @ localhost:59502
+waiting for signal to end remote
+listening to child process
+r2 connected to core; address =localhost:59504
+starting remote server @ localhost:59504
+remote.summary.request
+remote.summary.request
+NotifyAction
+recieved core shutdown in remote object
+NotifyAction
+recieved core shutdown in remote object
+attempting to make initial connection to core
+attempting to make initial connection to core
+waiting for signal to end remote
+listening to child process
+could not contact core; trying again in 5 seconds
+waiting for signal to end remote
+listening to child process
+could not contact core; trying again in 5 seconds
+could not contact core; trying again in 5 seconds
+could not contact core; trying again in 5 seconds
+could not contact core; trying again in 5 seconds

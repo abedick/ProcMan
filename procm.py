@@ -37,7 +37,8 @@ def main(args):
                     c = toml.load(args.config, _dict=dict)
                     Thread(target=launch_remotes, args=[c['services']]).start()
                 except:
-                    print("could not parse config!")
+                    # print("could not parse config!")
+                    pass
 
             core.wait()
 
@@ -53,7 +54,7 @@ def main(args):
                 pass
 
             if auto == "True":
-                print("will launch child service")
+                # print("will launch child service")
                 service_string = os.environ['SRVINFO']
                 service = json.loads(service_string)
                 pm.launch(service)

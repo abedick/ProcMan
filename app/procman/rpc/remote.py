@@ -10,8 +10,8 @@ class Remote(intrigue_pb2_grpc.RemoteServicer):
         self.remote = remote
 
     def NotifyAction(self, request, context):
-        print("NotifyAction")
-        print(request)
+        self.remote._print("NotifyAction")
+        # self.remote._print(request)
         if request.Request == "notif.shutdown":
             print("recieved shutdown notification from core")
 
@@ -23,7 +23,7 @@ class Remote(intrigue_pb2_grpc.RemoteServicer):
             return intrigue_pb2.Receipt()
 
     def Summary(self, request, context):
-        print("remote.summary.request")
+        self.remote._print("remote.summary.request")
 
         manager = intrigue_pb2.ProcessManager()
 
@@ -58,9 +58,9 @@ class Remote(intrigue_pb2_grpc.RemoteServicer):
         return receipt
 
     def UpdateRegistration(self, request, context):
-        print("UpdateRegistration")
-        print(request)
+        self.remote._print("UpdateRegistration")
+        self.remote._print(request)
 
 
     def Alive(self, request, context):
-        print("Alive")
+        self.remote._print("Alive")

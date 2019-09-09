@@ -8,3 +8,11 @@ entry_point = "main.py"
 language = "python"
 interpreted = true
 watch = false
+
+[[services]]
+name = "test2"
+path = "/Users/abrahamdick/Software/dummy/"
+entry_point = "main.py"
+language = "python"
+interpreted = true
+watch = false

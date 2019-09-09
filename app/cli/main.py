@@ -5,6 +5,7 @@ import os
 import shlex, subprocess
 import shutil
 import sys
+import threading
 import toml
 
 from datetime import datetime
@@ -27,6 +28,47 @@ def start(path_to_projects, project_name):
     print("                                               _|        ")
     print(pprint.seperator)
 
+
+    # Is there a project running?
+    alive = _alive()
+    if alive == None:
+        _starter(path_to_projects, project_name)
+    else:
+        _manager()
+
+
+def _manager():
+
+    while True:
+        choices = [
+            inquirer.List('choice',
+                        message="Choose an option",
+                        choices = ["stop project", "restart project", "summary", "exit w/ shutdown", "exit"],
+                        ),
+        ]
+
+        result = inquirer.prompt(choices)
+
+        # Start the process
+        if result['choice'] == "stop project":
+            stop_project()
+            break
+
+        elif result['choice'] == "restart project":
+            print("TODO")
+            
+        elif result['choice'] == "summary":
+            report()
+            print("...press enter to continue")
+            input()
+
+        elif result['choice'] == "exit w/ shutdown":
+            stop_project()
+            break
+        else:
+            break
+
+def _starter(path_to_projects, project_name):
     choices = _get_project_names(path_to_projects)
     choices.append("Create a new Project")
     choices.append("Exit")
@@ -46,6 +88,7 @@ def start(path_to_projects, project_name):
         return
     else:
         _load_project(path_to_projects, project_choice['choice'])
+        _manager()
 
 def _create_new(path_to_projects):
     print(pprint.seperator)
@@ -109,43 +152,63 @@ def _load_project(path_to_projects, name):
 
     result = inquirer.prompt(choices)
 
+    # Start the process
     if result['choice'] == "start project":
-        c = toml.load(path_to_projects + name + "/config.toml", _dict=dict)
-        
+
+
+
+        # Load the config
+        conf = _parse_config(path_to_projects, name)
+        if conf == None:
+            print("could not parse the config...")
+            return
+
+        # Set the env and launch the core
         env = os.environ
         env['PROCM_OVERRIDE'] = "True"
-        
-        subprocess.Popen(["./procm.py", "-o", "--core"], env=env)
+        env['LOGPATH'] = path_to_projects + name + "/logs/core.log"
 
-        services = c['services']
+        # Apparently there might be an error in subprocess.Popen that leads to a
+        # data race, adding a lock around the calls to subprocess.Popen seems to
+        # have fixed the issue
+        # https://stackoverflow.com/questions/18439712/subprocesss-popen-closes-stdout-stderr-filedescriptors-used-in-another-thread-w
+        l = threading.Lock()
+        l.acquire()
+        subprocess.Popen(["./procm.py", "-o", "--core"], env=env)
+        l.release()
+
+        # start each service
+        services = conf['services']
         for s in services:
+
             cmd = ["./procm.py", "-o", "--remote"]
 
             env = os.environ
             env['AUTO'] = "True"
             env['SRVINFO'] = json.dumps(s)
+            env['LOGPATH'] = path_to_projects + name + "/logs/remotes.log"
 
+            l.acquire()
             subprocess.Popen(cmd, env=env)
+            l.release()
 
-        return
     elif result['choice'] == "go back":
         print(pprint.seperator)
         start(path_to_projects, None)
+
     elif result['choice'] == "edit config":
         _edit_project(path_to_projects, name)
+
     elif result['choice'] == "delete project":
-        print("TODO")
+        print(pprint.seperator)
 
-    print(pprint.seperator)
+        try:
+            shutil.rmtree(path_to_projects + name)
+            print("sucessfully deleted project")
+        except:
+            print("could not delete project")    
 
-    try:
-        shutil.rmtree(path_to_projects + name)
-        print("sucessfully deleted project")
-    except:
-        print("could not delete project")    
-
-    print(pprint.seperator)
-    start(path_to_projects, None)
+        start(path_to_projects, None)
 
 def _edit_project(path_to_projects, name):
     print(pprint.seperator)
@@ -221,7 +284,10 @@ def stop_project():
     channel = grpc.insecure_channel("localhost:59500")
     stub = intrigue_pb2_grpc.ControlStub(channel)
     request = intrigue_pb2.EmptyRequest()
-    stub.KillService(request)
+    try:
+        stub.KillService(request)
+    except:
+        print("something wrong in shutdown...")
 
 
 '''
@@ -246,6 +312,7 @@ def _create_project_dir(path, name, attempt):
         return _create_project_dir(path,name,attempt+1)
 
     os.mkdir(working_name)
+    os.mkdir(working_name + "/logs")
 
     return name if attempt == 0 else name + '_' + str(attempt)
 
@@ -271,23 +338,75 @@ def _launch_project(path, name):
 
 
 
-''' 
-    cli - report - list status of running procman
-'''
-def report():
-    # print("getting the status of procman...")
+def _alive():
+    channel = grpc.insecure_channel("localhost:59500")
+    stub = intrigue_pb2_grpc.ControlStub(channel)
 
+    try:
+        response = stub.Alive(intrigue_pb2.Ping())
+        return response
+    except:
+        return None
+
+def _summary():
     channel = grpc.insecure_channel("localhost:59500")
     stub = intrigue_pb2_grpc.ControlStub(channel)
 
     request = intrigue_pb2.Action()
     request.Request = "summary.all"
 
-    response = stub.Summary(request)
-    # print(response)
+    try:
+        response = stub.Summary(request)
+        return response
+    except:
+        return None
 
-    pprint.report(response)
 
+
+''' 
+    cli - report - list status of running procman
+'''
+def report():
+    # print("getting the status of procman...")
+
+
+    '''
+        TODO: have each service in a selectable for more info on it 
+    '''
+
+    stub = intrigue_pb2_grpc.ControlStub(grpc.insecure_channel("localhost:59500"))
+    remotes = stub.Summary(intrigue_pb2.Action(Request="summary.all"))
+
+    print("--------------------------------------------------------------------------------------")
+    print("    {0:4}\u2502{1:8}\u2502{2:8}\u2502{3:7}\u2502{4:12}\u2502{5:6}\u2502{6:6}\u2502{7:24}"
+            .format("id", "name", "langauge", "watched","status", "pid", "errors", "path"))
+    print("    {0:\u2550<4}\u256A{0:\u2550<8}\u256A{0:\u2550<8}\u256A{0:\u2550<7}\u256A{0:\u2550<12}\u256A{0:\u2550<6}\u256A{0:\u2550<6}\u256A{0:\u2550<24}"
+            .format(""))
+
+    rmts = []
+    for rmt in remotes.Remotes:
+        rmts.append(" {0:4}\u2502{1:8}\u2502{2:8}\u2502{3:7}\u2502{4:12}\u2502{5:6}\u2502{6:6}\u2502{7:24}"
+                .format(rmt.ID, rmt.Services[0].Name, rmt.Services[0].Language,  "no", rmt.Services[0].Status, rmt.Services[0].Pid, "errors", "path"))
+    # print("-----------------------------------------------------------------------------------")
+
+    rmts.append(" restart all")
+    rmts.append(" reload")
+    rmts.append(" ...back")
+
+    choices = [
+        inquirer.List('choice',
+                      message=None,
+                      choices = rmts,
+                      ),
+    ]
+
+    result = inquirer.prompt(choices)
+
+    if result['choice'] == " reload":
+        report()
+
+    elif result['choice'] == " ...back":
+        _manager()
 
 def _dump_config(path, config):
     f = open(path + config['name'] + "/config.toml", "w+")

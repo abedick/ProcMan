@@ -105,7 +105,8 @@ class router(object):
         try:
             stub.NotifyAction(request)
         except:
-            color.cyan("error sending update request")
+            # color.cyan("error sending update request")
+            pass
 
     '''
         returns the remote_server object with the associated id; else None

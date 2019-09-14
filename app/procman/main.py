@@ -177,7 +177,7 @@ class remote(object):
         disconnection, wipe the registration and go back to connecting
     '''
     def core_shutdown(self, override):
-        self._print("recieved core shutdown in remote object")
+        self._print("received core shutdown in remote object")
 
         self.reg_mu.acquire()
         self.reg = None
@@ -192,9 +192,12 @@ class remote(object):
         # if override, shutdown own process; else go back to connecting
         if override:
             self.manager.stop()
+            self._print("shutdown complete @ force")
             os._exit(0)
         else:
             self._connect()
+
+        self._print("shutdown complete")
 
     '''
     '''

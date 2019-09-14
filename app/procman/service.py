@@ -1,4 +1,5 @@
 import threading
+import time
 import subprocess
 
 from datetime import datetime
@@ -27,8 +28,13 @@ class manager(object):
     first_start_time = None
     last_start_Time = None
 
-    number_failes = 0
+    # The total number of failures of the process
+    number_fails = 0
     lsat_fail_time = None
+
+    # The number of failures in a 30 second period (if >3, process will not be
+    # automatically restarted)
+    fail_timeout_cnt = 0
 
     log_fd = None
 
@@ -54,6 +60,8 @@ class manager(object):
         try:
             self.process = subprocess.Popen(["/usr/bin/python", self.cmd])
 
+            threading.Thread(target=self._manage_state, daemon=True)
+
             self.mu.acquire()
             self.state = enum.ProcessState.RUNNING
             self.last_start_Time = datetime.now().strftime("%s")
@@ -61,12 +69,11 @@ class manager(object):
             if self.first_start_time == None:
                 self.first_start_time = datetime.now().strftime("%s")
 
-            self.mu.release()
-
         except:
-
-
-            self._print("could not start service")
+            self._log("could not start service")
+        finally:
+            if self.mu.locked():
+                self.mu.release()
 
         self.listener()
 
@@ -74,28 +81,50 @@ class manager(object):
         listen to the process
     '''
     def listener(self):
-        self._print("listening to child process")
+        self._log("listening to child process")
         self.process.wait()
-        self._print("child process terminated")
+        self._log("child process terminated")
 
-        self._print(str(self.state))
+        self._log(str(self.state))
 
         # if process isn't restarting or shutting down (i.e. failed)
         if (self.state !=  enum.ProcessState.RESTARTING) and (self.state != enum.ProcessState.SHUTDOWN):
-            self._print("restarting process from failure")
+            self._log("restarting process from failure")
 
             self.mu.acquire()
-            self.number_failes += 1
+            self.number_fails += 1
+            self.fail_timeout_cnt += 1
             self.last_fail_time = datetime.now().strftime("%s")
             self.mu.release()
 
-            self.run()
+            # Restart only if not failed too many times (kept track of by 
+            # self.manage_state)
+            if self.fail_timeout_cnt < 3:
+                self.run()
+            else:
+                self._log("giving up on " + self.name)
+                self.mu.acquire()
+                self.state = enum.ProcessState.FAILED
+                self.mu.release()
+
+    '''
+
+    '''
+    def _manage_state(self):
+        time.sleep(30)
+        if self.state == enum.ProcessState.RUNNING:
+            self.mu.acquire()
+            self.state = enum.ProcessState.STABLE
+            self.mu.release()
 
     def stop(self):
         self.mu.acquire()
         self.state = enum.ProcessState.SHUTDOWN
         self.mu.release()
-        self.process.kill()
+        try:
+            self.process.kill()
+        except:
+            self._log("no process to kill")
 
     '''
         parse the complete path to the entry point
@@ -115,7 +144,7 @@ class manager(object):
         return cmd
 
 
-    def _print(self, msg):
+    def _log(self, msg):
         if self.log_fd == None:
             print(msg)
         else:

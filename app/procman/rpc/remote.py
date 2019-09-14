@@ -13,11 +13,14 @@ class Remote(intrigue_pb2_grpc.RemoteServicer):
         self.remote._print("NotifyAction")
         # self.remote._print(request)
         if request.Request == "notif.shutdown":
-            print("recieved shutdown notification from core")
+            self.remote._print("received shutdown notification from core")
 
             override = False
             if request.Message == "forceful":
+                self.remote._print("forceful shutdown")
                 override = True
+            else:
+                self.remote._print("non-forceful shutdown")
 
             self.remote.core_shutdown(override)
             return intrigue_pb2.Receipt()
